@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:persian_datetime_picker/src/date/shamsi_date.dart';
+import 'package:due_date_project/core/stores/salnama_store.dart';
+import 'package:due_date_project/local/model/event.dart';
+import 'package:provider/provider.dart';
 
 import 'pdate_picker_common.dart';
 import 'pdate_utils.dart' as utils;
@@ -81,6 +84,7 @@ class PCalendarDatePicker extends StatefulWidget {
     this.onDisplayedMonthChanged,
     this.initialCalendarMode = PDatePickerMode.day,
     this.selectableDayPredicate,
+    required this.holidays,
   })  : initialDate = utils.dateOnly(initialDate),
         firstDate = utils.dateOnly(firstDate),
         lastDate = utils.dateOnly(lastDate),
@@ -96,6 +100,8 @@ class PCalendarDatePicker extends StatefulWidget {
             selectableDayPredicate!(this.initialDate),
         'Provided initialDate ${this.initialDate} must satisfy provided selectableDayPredicate.');
   }
+
+  final List<Event> holidays;
 
   /// The initially selected [Jalali] that the picker should display.
   final Jalali initialDate;
@@ -228,6 +234,7 @@ class _CalendarDatePickerState extends State<PCalendarDatePicker> {
           currentDate: Jalali.now(),
           firstDate: widget.firstDate,
           lastDate: widget.lastDate,
+          holidays: widget.holidays,
           selectedDate: _selectedDate!,
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
@@ -408,10 +415,13 @@ class _MonthPicker extends StatefulWidget {
     required this.onChanged,
     required this.onDisplayedMonthChanged,
     this.selectableDayPredicate,
+    required this.holidays,
   })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedDate.isBefore(firstDate)),
         assert(!selectedDate.isAfter(lastDate)),
         super(key: key);
+
+  final List<Event> holidays;
 
   /// The initial month to display
   final Jalali? initialMonth;
@@ -541,6 +551,7 @@ class _MonthPickerState extends State<_MonthPicker> {
       lastDate: widget.lastDate,
       displayedMonth: month,
       selectableDayPredicate: widget.selectableDayPredicate,
+      holidays: widget.holidays,
     );
   }
 
@@ -609,10 +620,13 @@ class _DayPicker extends StatelessWidget {
     required this.selectedDate,
     required this.onChanged,
     this.selectableDayPredicate,
+    required this.holidays,
   })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedDate.isBefore(firstDate)),
         assert(!selectedDate.isAfter(lastDate)),
         super(key: key);
+
+  final List<Event> holidays;
 
   /// The currently selected date.
   ///
@@ -648,7 +662,8 @@ class _DayPicker extends StatelessWidget {
     final TextStyle? dayStyle = textTheme.bodySmall;
     final Color enabledDayColor = colorScheme.onSurface.withOpacity(0.87);
     final Color disabledDayColor = colorScheme.onSurface.withOpacity(0.38);
-    final Color selectedDayColor = colorScheme.onPrimary;
+    const Color holidayDayColor = Colors.redAccent;
+    Color selectedDayColor = colorScheme.onPrimary;
     final Color selectedDayBackground = colorScheme.primary;
     final Color todayColor = colorScheme.primary;
 
@@ -673,18 +688,40 @@ class _DayPicker extends StatelessWidget {
             (selectableDayPredicate != null &&
                 !selectableDayPredicate!(dayToBuild));
 
+        final bool isHoliday = _isHoliday(
+            dayToBuild, holidays, Provider.of<SalnamaStore>(context));
+
         BoxDecoration? decoration;
         Color dayColor = enabledDayColor;
         final bool isSelectedDay = utils.isSameDay(selectedDate, dayToBuild);
         if (isSelectedDay) {
           // The selected day gets a circle background highlight, and a
           // contrasting text color.
-          dayColor = selectedDayColor;
-          decoration = BoxDecoration(
-            color: selectedDayBackground,
-            shape: BoxShape.circle,
-          );
-        } else if (isDisabled) {
+
+          final bool isHoliday = _isHoliday(
+              selectedDate, holidays, Provider.of<SalnamaStore>(context));
+          if (isHoliday) {
+            dayColor = Colors.red;
+            decoration = BoxDecoration(
+              border: Border.all(
+                  color: selectedDate == Jalali.now()
+                      ? Colors.transparent
+                      : selectedDayBackground,
+                  width: 2),
+              shape: BoxShape.circle,
+              color: selectedDate == Jalali.now() ? Colors.blue : Colors.white,
+            );
+          } else {
+            dayColor = colorScheme.onPrimary;
+            decoration = BoxDecoration(
+              color: selectedDayBackground,
+              shape: BoxShape.circle,
+            );
+          }
+        } else if (isHoliday) {
+          dayColor = holidayDayColor;
+          selectedDayColor = holidayDayColor;
+        }else if (isDisabled) {
           dayColor = disabledDayColor;
         } else if (utils.isSameDay(currentDate, dayToBuild)) {
           // The current day gets a different text color and a circle stroke
@@ -744,6 +781,27 @@ class _DayPicker extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  bool _isHoliday(
+      Jalali dayToBuild, List<Event> holidays, SalnamaStore salnamaStore) {
+    if (dayToBuild.weekDay == 7) {
+      return true;
+    }
+
+    final georgian = dayToBuild.toDateTime();
+    final hijri = salnamaStore.calculateHijriCalendarFromDate(georgian);
+
+    return holidays.where((element) {
+      if (element.calendarType == CalendarType.JALALI) {
+        return element.day == dayToBuild.day &&
+            element.month == dayToBuild.month;
+      } else if (element.calendarType == CalendarType.QAMARI) {
+        return element.day == hijri.hDay && element.month == hijri.hMonth;
+      } else {
+        return element.day == georgian.day && element.month == georgian.month;
+      }
+    }).isNotEmpty;
   }
 }
 

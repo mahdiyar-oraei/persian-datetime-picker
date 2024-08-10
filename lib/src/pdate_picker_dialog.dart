@@ -348,6 +348,7 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
         onDateChanged: _handleDateChanged,
         selectableDayPredicate: widget.selectableDayPredicate,
         initialCalendarMode: widget.initialCalendarMode,
+        holidays: [],
       );
     }
 

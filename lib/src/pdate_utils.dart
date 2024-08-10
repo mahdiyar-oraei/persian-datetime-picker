@@ -285,6 +285,11 @@ extension JalaliExt on Jalali {
     return '${f.wN} ${f.d} ${f.mN} ${f.yyyy}';
   }
 
+  String formatFullDateWithoutDay() {
+    final f = formatter;
+    return '${f.d} ${f.mN} ${f.yyyy} ';
+  }
+
   String toJalaliDateTime() {
     final f = formatter;
     return '${f.yyyy}-${f.mm}-${f.dd} ${_twoDigits(hour)}:${_twoDigits(minute)}:${_twoDigits(second)}';
