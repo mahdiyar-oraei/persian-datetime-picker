@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:persian_datetime_picker/src/date/shamsi_date.dart';
 import 'package:due_date_project/core/stores/salnama_store.dart';
+import 'package:due_date_project/note/stores/note/note_store.dart';
 import 'package:due_date_project/local/model/event.dart';
 import 'package:provider/provider.dart';
 
@@ -740,6 +741,29 @@ class _DayPicker extends StatelessWidget {
                 style: dayStyle!.apply(color: dayColor)),
           ),
         );
+
+        final noteStore = Provider.of<NoteStore>(context);
+        if (noteStore.notesForCalender.contains(dayToBuild.toDateTime().millisecondsSinceEpoch)) {
+          dayWidget = Stack(
+            children: [
+              dayWidget,
+              Row(
+                children: [
+                  const Spacer(),
+                  Container(
+                    height: 8,
+                    width: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.amber,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10,),
+                ],
+              ),
+            ],
+          );
+        }
 
         if (isDisabled) {
           dayWidget = ExcludeSemantics(
