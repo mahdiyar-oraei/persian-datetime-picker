@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:persian_datetime_picker/src/date/shamsi_date.dart';
+import 'package:due_date_project/local/model/event.dart';
 
 import 'pcalendar_date_picker.dart';
 import 'pdate_picker_common.dart';
@@ -81,6 +82,7 @@ Future<Jalali?> showPersianDatePicker({
   required Jalali initialDate,
   required Jalali firstDate,
   required Jalali lastDate,
+  required List<Event> holidays,
   PDatePickerEntryMode initialEntryMode = PDatePickerEntryMode.calendar,
   PSelectableDayPredicate? selectableDayPredicate,
   String? helpText,
@@ -124,6 +126,7 @@ Future<Jalali?> showPersianDatePicker({
     errorInvalidText: errorInvalidText,
     fieldHintText: fieldHintText,
     fieldLabelText: fieldLabelText,
+    holidays: holidays,
   );
 
   if (textDirection != null) {
@@ -167,6 +170,7 @@ class _DatePickerDialog extends StatefulWidget {
     this.errorInvalidText,
     this.fieldHintText,
     this.fieldLabelText,
+    required this.holidays,
   })  : initialDate = utils.dateOnly(initialDate),
         firstDate = utils.dateOnly(firstDate),
         lastDate = utils.dateOnly(lastDate),
@@ -218,6 +222,8 @@ class _DatePickerDialog extends StatefulWidget {
   final String? fieldHintText;
 
   final String? fieldLabelText;
+
+  final List<Event> holidays;
 
   @override
   _DatePickerDialogState createState() => _DatePickerDialogState();
@@ -348,7 +354,7 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
         onDateChanged: _handleDateChanged,
         selectableDayPredicate: widget.selectableDayPredicate,
         initialCalendarMode: widget.initialCalendarMode,
-        holidays: [],
+        holidays: widget.holidays,
       );
     }
 
