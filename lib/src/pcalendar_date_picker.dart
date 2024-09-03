@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:math' as math;
-
+import 'package:due_date_project/core/constants/themes.dart';
 import './pdate_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -262,26 +262,12 @@ class _CalendarDatePickerState extends State<PCalendarDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        SingleChildScrollView(
-          child: SizedBox(
-            height: _maxDayPickerHeight,
-            child: _buildPicker(),
-          ),
-        ),
-        // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
-        _DatePickerModeToggleButton(
-          mode: _mode,
-          title: formatMonthYear(_currentDisplayedMonthDate!),
-          onTitlePressed: () {
-            // Toggle the day/year mode.
-            _handleModeChanged(_mode == PDatePickerMode.day
-                ? PDatePickerMode.year
-                : PDatePickerMode.day);
-          },
-        ),
-      ],
+    return Container(
+      height: 250,
+      padding: EdgeInsets.only(top: 15),
+      alignment: Alignment.center,
+      child: _buildPicker(),
+      // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
     );
   }
 }
@@ -567,29 +553,7 @@ class _MonthPickerState extends State<_MonthPicker> {
     return Semantics(
       child: Column(
         children: <Widget>[
-          Container(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
-            height: _subHeaderHeight,
-            child: Row(
-              children: <Widget>[
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: controlColor,
-                  tooltip: _isDisplayingFirstMonth ? null : previousTooltipText,
-                  onPressed:
-                      _isDisplayingFirstMonth ? null : _handlePreviousMonth,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  color: controlColor,
-                  tooltip: _isDisplayingLastMonth ? null : nextTooltipText,
-                  onPressed: _isDisplayingLastMonth ? null : _handleNextMonth,
-                ),
-              ],
-            ),
-          ),
-          _DayHeaders(),
+
           Expanded(
             child: PageView.builder(
               controller: _pageController,
@@ -707,7 +671,7 @@ class _DayPicker extends StatelessWidget {
               border: Border.all(
                   color: selectedDate == Jalali.now()
                       ? Colors.transparent
-                      : selectedDayBackground,
+                      : Themes.mainColor,
                   width: 2),
               shape: BoxShape.circle,
               color: selectedDate == Jalali.now() ? Colors.blue : Colors.white,
@@ -715,7 +679,7 @@ class _DayPicker extends StatelessWidget {
           } else {
             dayColor = colorScheme.onPrimary;
             decoration = BoxDecoration(
-              color: selectedDayBackground,
+              color: Themes.mainColor,
               shape: BoxShape.circle,
             );
           }
@@ -731,6 +695,7 @@ class _DayPicker extends StatelessWidget {
           decoration = BoxDecoration(
             border: Border.all(color: todayColor, width: 1),
             shape: BoxShape.circle,
+
           );
         }
 
@@ -738,7 +703,7 @@ class _DayPicker extends StatelessWidget {
           decoration: decoration,
           child: Center(
             child: Text(formatDecimal(day),
-                style: dayStyle!.apply(color: dayColor)),
+                style: Themes.iranSansBlack18.copyWith(color: dayColor)),
           ),
         );
 
@@ -754,7 +719,7 @@ class _DayPicker extends StatelessWidget {
                     height: 8,
                     width: 8,
                     decoration: const BoxDecoration(
-                      color: Colors.amber,
+                      color: Colors.lightGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
